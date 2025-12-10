@@ -1,3 +1,23 @@
+    // Update mobile menu bar and details after Firebase sync
+    const mobileProfileNameEl = document.getElementById('mobileProfileName');
+    const mobileProfileEmailEl = document.getElementById('mobileProfileEmail');
+    const mobileProfileMemberEl = document.getElementById('mobileProfileMember');
+    const mobileProfilePhotoEl = document.getElementById('mobileProfilePhoto');
+    if (currentUser) {
+        if (mobileProfileNameEl) mobileProfileNameEl.textContent = currentUser.name || '';
+        if (mobileProfileEmailEl) mobileProfileEmailEl.textContent = currentUser.email || '';
+        if (mobileProfilePhotoEl && currentUser.photo) mobileProfilePhotoEl.src = currentUser.photo;
+        if (mobileProfileMemberEl && budgets.length > 0) {
+            // Show member since first budget saved
+            const firstBudget = budgets[budgets.length - 1];
+            if (firstBudget && firstBudget.saved_at) {
+                const date = new Date(firstBudget.saved_at);
+                const month = date.toLocaleString('default', { month: 'short' });
+                const year = date.getFullYear();
+                mobileProfileMemberEl.textContent = `${month} ${year}`;
+            }
+        }
+    }
 // Initialize Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyAZBx_u3YwqeU9oKD99UBmoLme8rkTTz04",
@@ -220,10 +240,12 @@ function syncFromFirebase() {
                     console.log('Calling updateDashboard()');
                     updateDashboard();
                 }
+                // Always refresh both desktop and mobile month dropdowns after budgets load
                 if (typeof populateMonthDropdown === 'function') {
                     console.log('Calling populateMonthDropdown()');
                     populateMonthDropdown();
-                } else if (typeof window.populateMonthDropdown === 'function') {
+                }
+                if (typeof window.populateMonthDropdown === 'function') {
                     window.populateMonthDropdown();
                 }
                 // Always update dropdown text
@@ -1907,6 +1929,13 @@ function updateSevenDayChart() {
         return;
     }
 
+    // Dynamically set bar thickness for mobile
+    let barThickness = 40;
+    let maxBarThickness = 50;
+    if (window.innerWidth <= 480) {
+        barThickness = 20;
+        maxBarThickness = 24;
+    }
     sevenDayChart = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -1919,8 +1948,8 @@ function updateSevenDayChart() {
                 borderWidth: 0,
                 borderRadius: 6,
                 hoverBackgroundColor: '#76C8E8',
-                barThickness: 40,
-                maxBarThickness: 50
+                barThickness: barThickness,
+                maxBarThickness: maxBarThickness
             }]
         },
         options: {
